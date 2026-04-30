@@ -14,6 +14,14 @@ public class BattleSystem : MonoBehaviour
     public BattleUnit enemy;
     public EnemyUtilityAI enemyAI;
 
+    [Header("Battle Animators")]
+    public Animator playerAnimator;
+    public Animator enemyAnimator;
+
+    [Header("Animation Timing")]
+    public float attackAnimDelay = 0.35f;
+    public float hurtAnimDelay = 0.2f;
+
     [Header("UI Text")]
     public TMP_Text playerHPText;
     public TMP_Text enemyHPText;
@@ -108,21 +116,37 @@ public class BattleSystem : MonoBehaviour
 
         if (action == ActionType.Attack)
         {
+            playerAnimator.SetTrigger("Attack");
+            yield return new WaitForSeconds(attackAnimDelay);
+
+            enemyAnimator.SetTrigger("Hurt");
+
             int damage = enemy.TakeDamage(player.attackDamage);
             narrationText.text = "You attack for " + damage + " damage!";
+
+            RefreshUI();
+            yield return new WaitForSeconds(hurtAnimDelay);
         }
         else if (action == ActionType.Special)
         {
+            playerAnimator.SetTrigger("Attack");
+            yield return new WaitForSeconds(attackAnimDelay);
+
+            enemyAnimator.SetTrigger("Hurt");
+
             int damage = enemy.TakeDamage(player.specialDamage);
             narrationText.text = "You use SPECIAL for " + damage + " damage!";
+
+            RefreshUI();
+            yield return new WaitForSeconds(hurtAnimDelay);
         }
         else if (action == ActionType.Heal)
         {
             int healed = player.Heal();
             narrationText.text = " You heal " + healed + " HP!";
+            RefreshUI();
         }
 
-        RefreshUI();
         yield return new WaitForSeconds(2f);
 
         if (enemy.IsDead())
@@ -145,21 +169,37 @@ public class BattleSystem : MonoBehaviour
 
         if (choice == EnemyActionType.Attack)
         {
+            enemyAnimator.SetTrigger("Attack");
+            yield return new WaitForSeconds(attackAnimDelay);
+
+            playerAnimator.SetTrigger("Hurt");
+
             int damage = player.TakeDamage(enemy.attackDamage);
             narrationText.text = "Enemy attacks with " + damage + " damage!";
+
+            RefreshUI();
+            yield return new WaitForSeconds(hurtAnimDelay);
         }
         else if (choice == EnemyActionType.Special)
         {
+            enemyAnimator.SetTrigger("Attack");
+            yield return new WaitForSeconds(attackAnimDelay);
+
+            playerAnimator.SetTrigger("Hurt");
+
             int damage = player.TakeDamage(enemy.specialDamage);
             narrationText.text = "Enemy uses SPECIAL with " + damage + " damage!";
+
+            RefreshUI();
+            yield return new WaitForSeconds(hurtAnimDelay);
         }
         else
         {
             int healed = enemy.Heal();
             narrationText.text = "Enemy heals " + healed + " HP!";
+            RefreshUI();
         }
 
-        RefreshUI();
         yield return new WaitForSeconds(2f);
 
         if (player.IsDead())
