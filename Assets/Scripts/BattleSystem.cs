@@ -25,6 +25,8 @@ public class BattleSystem : MonoBehaviour
     [Header("UI Text")]
     public TMP_Text playerHPText;
     public TMP_Text enemyHPText;
+    public TMP_Text playerTPText;
+    public TMP_Text enemyTPText;
     public TMP_Text narrationText;
 
     [Header("Buttons")]
@@ -89,6 +91,8 @@ public class BattleSystem : MonoBehaviour
     {
         playerHPText.text = "HP: " + player.currentHP;
         enemyHPText.text = "HP: " + enemy.currentHP;
+        playerTPText.text = "TP: " + player.currentTP;
+        enemyTPText.text = "TP: " + enemy.currentTP;
     }
 
     public void OnAttackButton()
@@ -122,6 +126,7 @@ public class BattleSystem : MonoBehaviour
             enemyAnimator.SetTrigger("Hurt");
 
             int damage = enemy.TakeDamage(player.attackDamage);
+            player.GainTP(player.attackTPGain);
             narrationText.text = "You attack for " + damage + " damage!";
 
             RefreshUI();
@@ -129,7 +134,16 @@ public class BattleSystem : MonoBehaviour
         }
         else if (action == ActionType.Special)
         {
-            playerAnimator.SetTrigger("Attack");
+            if (!player.CanUseSpecial())
+            {
+                narrationText.text = "Not enough TP for SPECIAL!";
+                yield return new WaitForSeconds(2f);
+                StartPlayerTurn();
+                yield break;
+            }
+
+            player.SpendTP(player.specialCost);
+            playerAnimator.SetTrigger("Special");
             yield return new WaitForSeconds(attackAnimDelay);
 
             enemyAnimator.SetTrigger("Hurt");
@@ -142,6 +156,15 @@ public class BattleSystem : MonoBehaviour
         }
         else if (action == ActionType.Heal)
         {
+            if (!player.CanHeal())
+            {
+                narrationText.text = "Not enough TP to heal!";
+                yield return new WaitForSeconds(2f);
+                StartPlayerTurn();
+                yield break;
+            }
+            
+            player.SpendTP(player.healCost);
             int healed = player.Heal();
             narrationText.text = " You heal " + healed + " HP!";
             RefreshUI();
@@ -175,6 +198,7 @@ public class BattleSystem : MonoBehaviour
             playerAnimator.SetTrigger("Hurt");
 
             int damage = player.TakeDamage(enemy.attackDamage);
+            enemy.GainTP(enemy.attackTPGain);
             narrationText.text = "Enemy attacks with " + damage + " damage!";
 
             RefreshUI();
@@ -187,6 +211,7 @@ public class BattleSystem : MonoBehaviour
 
             playerAnimator.SetTrigger("Hurt");
 
+            enemy.SpendTP(enemy.specialCost);
             int damage = player.TakeDamage(enemy.specialDamage);
             narrationText.text = "Enemy uses SPECIAL with " + damage + " damage!";
 
@@ -195,6 +220,7 @@ public class BattleSystem : MonoBehaviour
         }
         else
         {
+            enemy.SpendTP(enemy.healCost);
             int healed = enemy.Heal();
             narrationText.text = "Enemy heals " + healed + " HP!";
             RefreshUI();

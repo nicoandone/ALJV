@@ -17,8 +17,18 @@ public class EnemyUtilityAI : MonoBehaviour
 {
     public EnemyDifficulty difficulty = EnemyDifficulty.Normal;
 
+    private void SyncDifficulty()
+    {
+        if (GameSettings.selectedDifficulty == GameDifficulty.Easy)
+            difficulty = EnemyDifficulty.Random;
+        else
+            difficulty = EnemyDifficulty.Normal;
+    }
+    
     public EnemyActionType DecideAction(BattleUnit enemy, BattleUnit player)
     {
+        SyncDifficulty();
+
         float attackScore;
         float specialScore;
         float healScore;
@@ -26,8 +36,15 @@ public class EnemyUtilityAI : MonoBehaviour
         if (difficulty == EnemyDifficulty.Random)
         {
             attackScore = Random.Range(0f, 100f);
-            specialScore = Random.Range(0f, 100f);
-            healScore = Random.Range(0f, 100f);
+            if(enemy.CanUseSpecial())
+                specialScore = Random.Range(0f, 100f);
+            else
+                specialScore = -999f;
+
+            if(enemy.CanHeal())
+                healScore = Random.Range(0f, 100f);
+            else
+                healScore = -999f;
         }
         else
         {
@@ -60,9 +77,11 @@ public class EnemyUtilityAI : MonoBehaviour
 
         float playerLowHP = 1f - (float)player.currentHP / player.maxHP;
         float enemyLowHP = 1f - (float)enemy.currentHP / enemy.maxHP;
+        bool enemyLowTP = (enemy.currentTP <= 6); 
 
         score += playerLowHP * 50f;
         score -= enemyLowHP * 50f;
+        if(enemyLowTP) score += 25f;
 
         if (player.currentHP <= enemy.attackDamage)
             score = 100f;
@@ -72,6 +91,9 @@ public class EnemyUtilityAI : MonoBehaviour
 
     private float ScoreSpecial(BattleUnit enemy, BattleUnit player)
     {
+        if(!enemy.CanUseSpecial())
+            return -999f;
+        
         float score = 50f;
 
         float playerLowHP = 1f - (float)player.currentHP / player.maxHP;
@@ -84,27 +106,30 @@ public class EnemyUtilityAI : MonoBehaviour
             score = 100f;
 
         if (player.currentHP <= enemy.attackDamage)
-            score -= 20f;
+            score = 0f;
 
         return score;
     }
 
     private float ScoreHeal(BattleUnit enemy, BattleUnit player)
     {
+        if(!enemy.CanHeal())
+            return -999f;
+        
         float score = 50f;
 
         float enemyLowHP = 1f - (float)enemy.currentHP / enemy.maxHP;
 
-        score += enemyLowHP * 50f;
+        score += enemyLowHP * 25f;
 
         if (enemy.currentHP <= player.attackDamage)
             score += 20f;
 
         if (enemy.currentHP + enemy.healAmount <= player.specialDamage)
-            score -= 20f;
+            score -= 30f;
         
         if (enemy.currentHP + enemy.healAmount <= player.attackDamage)
-            score -= 40f;
+            score = 0;
 
         return score;
     }

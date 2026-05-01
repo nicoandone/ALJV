@@ -1,0 +1,22 @@
+Milestone 2:
+
+no stamina
+
+attack: start at 50
+attackScore += playerLowHP * 50f;
+attackScore -= enemyLowHP * 50f;
+if (player.currentHP <= enemy.attackDamage) score = 100f;
+
+special: start at 50
+score += (1f - playerLowHP) * 50f;
+score -= enemyLowHP * 50f;
+if (player.currentHP <= enemy.specialDamage && player.currentHP > enemy.attackDamage) score = 100f;
+if (player.currentHP <= enemy.attackDamage) score -= 20f;
+
+heal: start at 50
+score += enemyLowHP * 50f;
+if (enemy.currentHP <= player.attackDamage) score += 20f;
+if (enemy.currentHP + enemy.healAmount <= player.specialDamage) score -= 20f;
+if (enemy.currentHP + enemy.healAmount <= player.attackDamage) score -= 40f;
+
+Milestone 3:
