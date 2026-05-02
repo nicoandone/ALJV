@@ -2,6 +2,7 @@
 //utility ai 2 difficulties
 //choose difficulty at start page
 
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -33,6 +34,7 @@ public class BattleSystem : MonoBehaviour
     public Button attackButton;
     public Button specialButton;
     public Button healButton;
+    public Button defendButton;
 
     private BattleState state;
 
@@ -50,7 +52,8 @@ public class BattleSystem : MonoBehaviour
     {
         Attack,
         Special,
-        Heal
+        Heal,
+        Defend
     }
 
     private void Start()
@@ -85,6 +88,7 @@ public class BattleSystem : MonoBehaviour
         attackButton.gameObject.SetActive(value);
         specialButton.gameObject.SetActive(value);
         healButton.gameObject.SetActive(value);
+        defendButton.gameObject.SetActive(value);
     }
 
     private void RefreshUI()
@@ -113,6 +117,12 @@ public class BattleSystem : MonoBehaviour
         StartCoroutine(PlayerAction(ActionType.Heal));
     }
 
+    public void OnDefendButton()
+    {
+        if (state != BattleState.PlayerTurn) return;
+        StartCoroutine(PlayerAction(ActionType.Defend));
+    }
+
     private IEnumerator PlayerAction(ActionType action)
     {
         state = BattleState.Busy;
@@ -126,7 +136,6 @@ public class BattleSystem : MonoBehaviour
             enemyAnimator.SetTrigger("Hurt");
 
             int damage = enemy.TakeDamage(player.attackDamage);
-            player.GainTP(player.attackTPGain);
             narrationText.text = "You attack for " + damage + " damage!";
 
             RefreshUI();
@@ -169,6 +178,12 @@ public class BattleSystem : MonoBehaviour
             narrationText.text = " You heal " + healed + " HP!";
             RefreshUI();
         }
+        else if (action == ActionType.Defend)
+        {
+            player.Defend();
+            narrationText.text = "You defend yourself against the next attack.";
+            RefreshUI();
+        }
 
         yield return new WaitForSeconds(2f);
 
@@ -179,6 +194,7 @@ public class BattleSystem : MonoBehaviour
             yield break;
         }
 
+        enemy.isDefending = false;
         StartCoroutine(EnemyTurn());
     }
 
@@ -198,7 +214,6 @@ public class BattleSystem : MonoBehaviour
             playerAnimator.SetTrigger("Hurt");
 
             int damage = player.TakeDamage(enemy.attackDamage);
-            enemy.GainTP(enemy.attackTPGain);
             narrationText.text = "Enemy attacks with " + damage + " damage!";
 
             RefreshUI();
@@ -218,11 +233,17 @@ public class BattleSystem : MonoBehaviour
             RefreshUI();
             yield return new WaitForSeconds(hurtAnimDelay);
         }
-        else
+        else if (choice == EnemyActionType.Heal)
         {
             enemy.SpendTP(enemy.healCost);
             int healed = enemy.Heal();
             narrationText.text = "Enemy heals " + healed + " HP!";
+            RefreshUI();
+        }
+        else if (choice == EnemyActionType.Defend)
+        {
+            enemy.Defend();
+            narrationText.text = "The enemy defended against your next attack.";
             RefreshUI();
         }
 
@@ -235,6 +256,7 @@ public class BattleSystem : MonoBehaviour
             yield break;
         }
 
+        player.isDefending = false;
         StartPlayerTurn();
     }
 }

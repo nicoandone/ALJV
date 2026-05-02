@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal.Internal;
 
 [System.Serializable]
 public class BattleUnit
@@ -13,18 +14,26 @@ public class BattleUnit
     public int specialDamage = 15;
     public int healAmount = 8;
 
-    public int attackTPGain = 4;
+    public int defendTPGain = 4;
     public int specialCost = 6;
     public int healCost = 5;
+
+    public bool isDefending = false;
 
     public void ResetUnit()
     {
         currentHP = maxHP;
         currentTP = maxTP;
+        isDefending = false;
     }
 
     public int TakeDamage(int amount)
     {
+        if (isDefending) {
+            amount = Mathf.CeilToInt(amount * 0.5f);
+            isDefending = false;
+        }
+
         int oldHP = currentHP;
         currentHP = Mathf.Max(0, currentHP - amount);
         return oldHP - currentHP;
@@ -46,6 +55,12 @@ public class BattleUnit
     public void SpendTP(int amount)
     {
         currentTP -= amount;
+    }
+
+    public void Defend()
+    {
+        isDefending = true;
+        GainTP(defendTPGain);
     }
 
     public bool CanUseSpecial()

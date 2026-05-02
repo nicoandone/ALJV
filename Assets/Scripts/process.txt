@@ -20,3 +20,34 @@ if (enemy.currentHP + enemy.healAmount <= player.specialDamage) score -= 20f;
 if (enemy.currentHP + enemy.healAmount <= player.attackDamage) score -= 40f;
 
 Milestone 3:
+stamina + defend
+made enemy more agressive
+
+attack: start at 60
+score += playerLowHP * 50f;
+score -= enemyLowHP * 20f;
+if(player.isDefending) score -= 15f;
+if (player.currentHP <= enemyDealDamage) return 100f;
+
+special: start at 65
+score += playerLowHP * 50f;
+score -= enemyLowHP * 20f;
+if(player.isDefending) score -= 15f;
+if (player.currentHP <= enemyDealSpecialDamage && player.currentHP > enemyDealNormalDamage) return 100f;
+if (player.currentHP <= enemyDealNormalDamage) return 0f;
+
+heal: start at 40
+score += enemyLowHP * 25f;
+if (enemy.currentHP <= player.attackDamage) score += 20f;
+if (enemy.currentHP + enemy.healAmount <= player.specialDamage) score -= 30f;
+if (enemy.currentHP + enemy.healAmount <= player.attackDamage) score -= 30;
+
+defend: start at 50
+if(enemyLowTP) score += 40f; 
+score += enemyLowHP * 20f;
+if (player.attackDamage >= enemy.currentHP) score += 30f;
+if (enemy.CanUseSpecial() || enemy.CanHeal()) score -= 10f;
+if (enemy.isDefending) score -= 30f;
+
+problem: defense prioritized too much: spam defense & special. make more varied+ add some attack incentive
+Milestone 4: Heuristics based on predicting player actions + 
